@@ -1,0 +1,11 @@
+Flask==3.0.3
+requests==2.32.3
+beautifulsoup4==4.12.3
+playwright==1.48.0
+python-dotenv==1.0.1
+pydantic==2.9.2
+yara-python==4.5.1
+google-genai==0.3.0
+python-whois==0.9.4
+idna==3.10
+gunicorn==23.0.0

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% block title %}LinkLens — URL Safety Analyzer{% endblock %}</title>
+	<meta name="description" content="LinkLens opens links in a sandboxed browser and tells you whether they're worth clicking.">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔍</text></svg>">
+</head>
+<body>
+	<header class="site-header">
+		<div class="container header-inner">
+			<a class="brand" href="/">
+				<span class="brand-mark">🔍</span>
+				<span class="brand-name">LinkLens</span>
+			</a>
+			<nav>
+				<a href="/" class="nav-link">New scan</a>
+				<a href="/health" class="nav-link">Status</a>
+			</nav>
+		</div>
+	</header>
+
+	<main class="container">
+		{% block content %}{% endblock %}
+	</main>
+
+	<footer class="site-footer">
+		<div class="container">
+			<p>LinkLens opens URLs in a sandboxed browser and inspects what happens. Use it only on links you're allowed to test.</p>
+			<p class="muted">Scans can take up to a minute — the page is actually being loaded in an isolated Chromium.</p>
+		</div>
+	</footer>
+
+	<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

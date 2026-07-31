@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+	<div class="card hero-card">
+		<h1 class="hero-title">Is that link safe to click?</h1>
+		<p class="hero-sub">Paste a URL and LinkLens will open it in a sandboxed browser, watch what it
+		does, scan anything it tries to download, and give you a straight answer.</p>
+
+		<form method="post" action="/scan" id="analyzeForm" autocomplete="off">
+			<div class="url-input-row">
+				<input
+					type="url"
+					id="url"
+					name="url"
+					placeholder="https://example.com"
+					required
+					autofocus
+					spellcheck="false"
+					aria-label="URL to analyze"
+				>
+				<button type="submit" class="btn btn-primary">Analyze</button>
+			</div>
+			{% if error %}
+			<div class="alert alert-error">{{ error }}</div>
+			{% endif %}
+			<p class="muted form-hint">Must start with http:// or https://. Private/loopback addresses are blocked.</p>
+		</form>
+	</div>
+
+	<div class="feature-grid">
+		<div class="card feature-card">
+			<span class="feature-icon">🛡️</span>
+			<h3>Sandboxed browsing</h3>
+			<p class="muted">The link is opened in a real, isolated Chromium with downloads, popups and network calls watched in real time.</p>
+		</div>
+		<div class="card feature-card">
+			<span class="feature-icon">🧠</span>
+			<h3>AI review</h3>
+			<p class="muted">Gemini reads the URL, page text and popup content and scores how scammy it looks (optional — works without it too).</p>
+		</div>
+		<div class="card feature-card">
+			<span class="feature-icon">📄</span>
+			<h3>Deep inspection</h3>
+			<p class="muted">WHOIS age, SSL certs, redirect chains, YARA malware rules, hidden iframes, password exfiltration, and more.</p>
+		</div>
+	</div>
+
+	<div class="card disclaimer">
+		<p><strong>What you're actually getting:</strong></p>
+		<ul class="muted">
+			<li>A <strong>risk score out of 10</strong> with a plain-language breakdown of why.</li>
+			<li>A <strong>screenshot</strong> of the final page, so you can see it before you trust it.</li>
+			<li>Alerts for phishing tricks: typosquatting, fake brands, urgency language, hidden redirects, auto-downloads.</li>
+		</ul>
+	</div>
+</section>
+
+<div class="scan-overlay" id="scanOverlay" hidden>
+	<div class="scan-overlay-card">
+		<div class="spinner"></div>
+		<h2>Analyzing...</h2>
+		<p class="scan-step" id="scanStep">Checking the URL</p>
+		<div class="scan-progress"><div class="scan-progress-fill" id="scanProgress"></div></div>
+		<p class="muted">Loading the page in a sandboxed browser — this usually takes 15–40 seconds.</p>
+	</div>
+</div>
+{% endblock %}

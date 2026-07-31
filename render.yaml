@@ -1,0 +1,26 @@
+# Render blueprint for LinkLens.
+# Import this file in the Render dashboard (New -> Blueprint) and it will
+# build the Docker image and stand up the web service for you.
+#
+# You still need to set GEMINI_API_KEY in the Render dashboard (or in the
+# blueprint envVars below if you commit it, which we don't recommend).
+
+services:
+  - type: web
+    name: linklens
+    runtime: docker
+    repo: https://github.com/akshaytheflash/linklens
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ANALYSIS_TIMEOUT_SECONDS
+        value: "40"
+      - key: RATE_LIMIT_REQUESTS
+        value: "30"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"
+      - key: LOG_SAMPLE_RATE
+        value: "0.3"
+      - key: GEMINI_API_KEY
+        sync: false
