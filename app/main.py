@@ -30,6 +30,9 @@ load_dotenv()
 app = Flask(__name__)
 config = AppConfig.from_env()
 
+VERSION = "1.2.0"
+START_TIME = time.time()
+
 logger = setup_json_logging(sample_rate=config.log_sample_rate)
 rate_limiter = RateLimiter(config.rate_limit_requests, config.rate_limit_window_seconds)
 
@@ -500,6 +503,41 @@ def index():
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "service": "linklens", "yara_rules": yara_scanner.get_rule_count(), "ai_enabled": gemini.enabled})
+
+
+def _uptime_text() -> str:
+    seconds = int(time.time() - START_TIME)
+    days, rem = divmod(seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes, seconds = divmod(rem, 60)
+    parts = []
+    if days:
+        parts.append(f"{days}d")
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes:
+        parts.append(f"{minutes}m")
+    parts.append(f"{seconds}s")
+    return " ".join(parts)
+
+
+@app.get("/status")
+def status_page():
+    with _scan_store_lock:
+        cached_scans = len(_scan_store)
+    return render_template(
+        "status.html",
+        version=VERSION,
+        uptime=_uptime_text(),
+        yara_files=yara_scanner.get_rule_count(),
+        ai_enabled=gemini.enabled,
+        ai_model=gemini.model if gemini.enabled else None,
+        timeout_seconds=DEFAULT_TIMEOUT,
+        rate_limit=config.rate_limit_requests,
+        rate_limit_window=config.rate_limit_window_seconds,
+        scan_ttl_minutes=SCAN_TTL_SECONDS // 60,
+        cached_scans=cached_scans,
+    )
 
 
 def _extract_timeout(value: Any) -> int:

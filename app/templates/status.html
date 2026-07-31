@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Status — LinkLens{% endblock %}
+{% block content %}
+<section class="hero">
+	<div class="container">
+		<div class="hero-badge reveal">
+			<span class="badge badge-verdict badge-safe">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14 9 11"/></svg>
+				All systems operational
+			</span>
+		</div>
+		<h1 class="reveal" data-delay="1">
+			Service <span class="gradient-text">status</span>
+		</h1>
+		<p class="hero-sub reveal" data-delay="2">
+			LinkLens is up and ready to analyze links. Here's what's running underneath.
+		</p>
+	</div>
+</section>
+
+<div class="container" style="padding-bottom:80px">
+	<section class="sec reveal">
+		<div class="summary-cards">
+			<div class="card card-hover summary-card">
+				<div class="s-ic s-ic-teal">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+				</div>
+				<div class="s-val">{{ uptime }}</div>
+				<div class="s-lbl">Uptime</div>
+			</div>
+			<div class="card card-hover summary-card">
+				<div class="s-ic s-ic-teal">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+				</div>
+				<div class="s-val">{{ yara_files }} / 7</div>
+				<div class="s-lbl">YARA rule sets</div>
+			</div>
+			<div class="card card-hover summary-card">
+				<div class="s-ic {{ 's-ic-green' if ai_enabled else 's-ic-amber' }}">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z"/></svg>
+				</div>
+				<div class="s-val">{{ 'On' if ai_enabled else 'Off' }}</div>
+				<div class="s-lbl">AI review (Gemini)</div>
+			</div>
+			<div class="card card-hover summary-card">
+				<div class="s-ic s-ic-teal">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.7-4 3-9 3s-9-1.3-9-3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/></svg>
+				</div>
+				<div class="s-val">{{ cached_scans }}</div>
+				<div class="s-lbl">Scans in cache</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="grid grid-2">
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+					</span>
+					<h3>Service</h3>
+				</div>
+				<table class="kv">
+					<tbody>
+						<tr><td>Name</td><td>LinkLens</td></tr>
+						<tr><td>Version</td><td class="mono">{{ version }}</td></tr>
+						<tr><td>Status</td><td class="good">Operational</td></tr>
+						<tr><td>Uptime</td><td>{{ uptime }}</td></tr>
+						<tr><td>Scans in cache</td><td>{{ cached_scans }}</td></tr>
+						<tr><td>Cache lifetime</td><td>{{ scan_ttl_minutes }} minutes</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z"/></svg>
+					</span>
+					<h3>Engines</h3>
+				</div>
+				<table class="kv">
+					<tbody>
+						<tr><td>Sandboxed browser</td><td class="good">Chromium (Playwright)</td></tr>
+						<tr><td>YARA rule files</td><td class="{{ 'good' if yara_files == 7 else 'warn' }}">{{ yara_files }} / 7 loaded</td></tr>
+						<tr><td>AI review</td><td>{% if ai_enabled %}<span class="chip chip-good">{{ ai_model }}</span>{% else %}<span class="chip chip-warn">Disabled — set GEMINI_API_KEY</span>{% endif %}</td></tr>
+						<tr><td>Max scan timeout</td><td>{{ timeout_seconds }}s</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="card sec-body">
+			<div class="sec-head">
+				<span class="sec-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+					</span>
+					<h3>Limits</h3>
+				</div>
+				<div class="perf-grid">
+					<div class="perf-item"><div class="p-val">{{ rate_limit }}</div><div class="p-lbl">requests / {{ rate_limit_window }}s per IP</div></div>
+					<div class="perf-item"><div class="p-val">{{ timeout_seconds }}s</div><div class="p-lbl">analysis timeout</div></div>
+					<div class="perf-item"><div class="p-val">{{ scan_ttl_minutes }}m</div><div class="p-lbl">result cache TTL</div></div>
+					<div class="perf-item"><div class="p-val">7</div><div class="p-lbl">YARA rule sets</div></div>
+				</div>
+			</div>
+		</div>
+	</section>
+</div>
+{% endblock %}
