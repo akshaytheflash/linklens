@@ -600,11 +600,11 @@
 				<h3>Performance</h3>
 			</div>
 			<div class="perf-grid">
-				<div class="card card-hover perf-item"><div class="p-val">{{ result.trace.static_ms }} ms</div><div class="p-lbl">Static preflight</div></div>
-				<div class="card card-hover perf-item"><div class="p-val">{{ result.trace.dynamic_ms }} ms</div><div class="p-lbl">Browser load and capture</div></div>
-				<div class="card card-hover perf-item"><div class="p-val">{{ result.trace.total_ms }} ms</div><div class="p-lbl">Total</div></div>
+				<div class="perf-item"><div class="p-val">{{ result.trace.static_ms }} ms</div><div class="p-lbl">Static preflight</div></div>
+				<div class="perf-item"><div class="p-val">{{ result.trace.dynamic_ms }} ms</div><div class="p-lbl">Browser load and capture</div></div>
+				<div class="perf-item"><div class="p-val">{{ result.trace.total_ms }} ms</div><div class="p-lbl">Total</div></div>
 				{% if result.loadMetrics %}
-				<div class="card card-hover perf-item"><div class="p-val">{{ result.loadMetrics.domContentLoaded }} ms</div><div class="p-lbl">DOM ready (page)</div></div>
+				<div class="perf-item"><div class="p-val">{{ result.loadMetrics.domContentLoaded }} ms</div><div class="p-lbl">DOM ready (page)</div></div>
 				{% endif %}
 			</div>
 		</div>

@@ -280,8 +280,9 @@ html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 }
 .scan-box:focus-within { border-color: var(--primary); box-shadow: var(--shadow-glow); }
 .scan-input {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  height: 48px;
   border: none;
   outline: none;
   background: transparent;
@@ -290,6 +291,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
   padding: 0 14px;
 }
 .scan-input::placeholder { color: var(--muted-2); }
+.scan-input::selection { background: rgba(13, 148, 136, 0.25); }
 .scan-box .btn { height: 48px; border-radius: 11px; }
 
 .hero-hint { margin-top: 16px; font-size: 0.82rem; color: var(--muted-2); }
@@ -525,7 +527,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 }
 .sec-head .sec-icon svg { width: 17px; height: 17px; }
 .sec-head h3 { font-size: 1.05rem; margin: 0; }
-.sec-body .card-pad { padding: 20px 22px; }
+.sec-body { padding: 22px; }
 
 .kv { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .kv td { padding: 9px 0; vertical-align: top; border-bottom: 1px solid var(--border); }
@@ -597,7 +599,12 @@ html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 
 /* perf grid */
 .perf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-.perf-item { padding: 14px; }
+.perf-item {
+  padding: 16px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+}
 .perf-item .p-val { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; color: var(--fg-strong); }
 .perf-item .p-lbl { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
 
