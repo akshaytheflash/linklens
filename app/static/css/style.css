@@ -317,8 +317,11 @@ html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
   max-width: 640px;
   margin: 24px auto 0;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 .alert svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+.alert > div, .alert > p { min-width: 0; flex: 1; }
+.alert .mono, .alert code { word-break: break-all; overflow-wrap: anywhere; }
 .alert-danger { border-color: rgba(220, 38, 38, 0.25); background: var(--danger-bg); color: var(--danger); }
 .alert-warning { border-color: rgba(217, 119, 6, 0.3); background: var(--warning-bg); color: var(--warning); }
 
