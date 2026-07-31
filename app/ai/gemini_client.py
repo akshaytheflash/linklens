@@ -14,7 +14,7 @@ class GeminiClient:
     """Thin wrapper around the Gemini API that asks for JSON back so the
     risk scores parse cleanly instead of guessing numbers from prose."""
 
-    def __init__(self, api_key: Optional[str], model: str = "gemini-flash-latest") -> None:
+    def __init__(self, api_key: Optional[str], model: str = "gemini-3.5-flash-lite") -> None:
         self.model = model
         self._client = None
         if api_key and genai is not None:
