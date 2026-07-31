@@ -14,7 +14,7 @@ class GeminiClient:
     """Thin wrapper around the Gemini API that asks for JSON back so the
     risk scores parse cleanly instead of guessing numbers from prose."""
 
-    def __init__(self, api_key: Optional[str], model: str = "gemini-1.5-flash") -> None:
+    def __init__(self, api_key: Optional[str], model: str = "gemini-flash-latest") -> None:
         self.model = model
         self._client = None
         if api_key and genai is not None:
@@ -35,7 +35,7 @@ class GeminiClient:
             return None
         try:
             config = types.GenerateContentConfig(response_mime_type="application/json") if types else None
-            response = self._client.models.generate(model=self.model, contents=prompt, config=config)
+            response = self._client.models.generate_content(model=self.model, contents=prompt, config=config)
             text = getattr(response, "text", None) or ""
             start = text.find("{")
             end = text.rfind("}")

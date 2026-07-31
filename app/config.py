@@ -19,7 +19,7 @@ def _as_list(value: str | None) -> List[str]:
 class AppConfig(BaseModel):
     # AI
     gemini_api_key: Optional[str] = None
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-flash-latest"
 
     # Analysis limits
     analysis_timeout_seconds: int = 40
@@ -45,7 +45,7 @@ class AppConfig(BaseModel):
     def from_env(cls) -> "AppConfig":
         return cls(
             gemini_api_key=os.getenv("GEMINI_API_KEY") or None,
-            gemini_model=os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
+            gemini_model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
             analysis_timeout_seconds=int(os.getenv("ANALYSIS_TIMEOUT_SECONDS", "40")),
             max_url_length=int(os.getenv("MAX_URL_LENGTH", "2048")),
             allow_domains=_as_list(os.getenv("ALLOW_DOMAINS")),
