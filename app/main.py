@@ -2,13 +2,15 @@ import asyncio
 import json
 import os
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 import idna
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 from app.ai.gemini_client import GeminiClient
 from app.analysis.domain_trust import domain_trust
@@ -39,6 +41,37 @@ gemini = GeminiClient(api_key=config.gemini_api_key, model=config.gemini_model)
 DEFAULT_TIMEOUT = config.analysis_timeout_seconds
 
 os.makedirs(config.screenshots_dir, exist_ok=True)
+
+SCAN_TTL_SECONDS = 30 * 60
+_scan_store: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_scan_store_lock = Lock()
+
+
+def _store_result(result: Dict[str, Any]) -> str:
+    scan_id = uuid.uuid4().hex
+    with _scan_store_lock:
+        _purge_stale_results()
+        _scan_store[scan_id] = (time.time(), result)
+    return scan_id
+
+
+def _load_result(scan_id: str) -> Optional[Dict[str, Any]]:
+    with _scan_store_lock:
+        entry = _scan_store.get(scan_id)
+        if not entry:
+            return None
+        created_at, result = entry
+        if time.time() - created_at > SCAN_TTL_SECONDS:
+            _scan_store.pop(scan_id, None)
+            return None
+        return result
+
+
+def _purge_stale_results() -> None:
+    now = time.time()
+    for scan_id, (created_at, _) in list(_scan_store.items()):
+        if now - created_at > SCAN_TTL_SECONDS:
+            _scan_store.pop(scan_id, None)
 
 
 # ---------------------------------------------------------------------------
@@ -455,7 +488,13 @@ def _set_security_headers(resp):
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    response = render_template("index.html")
+    return app.response_class(
+        response=response,
+        status=200,
+        mimetype="text/html",
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.get("/health")
@@ -487,7 +526,22 @@ def scan_form():
 
     result = run_analysis(url, timeout_seconds)
     logger.info("scan_form_complete", extra={"verdict": result["overallVerdict"]})
-    return render_template("result.html", result=result)
+    scan_id = _store_result(result)
+    return redirect(url_for("scan_result", scan_id=scan_id), code=303)
+
+
+@app.get("/result/<scan_id>")
+def scan_result(scan_id: str):
+    result = _load_result(scan_id)
+    if result is None:
+        return redirect(url_for("index"))
+    html = render_template("result.html", result=result)
+    return app.response_class(
+        response=html,
+        status=200,
+        mimetype="text/html",
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.post("/analyze")

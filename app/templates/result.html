@@ -1,391 +1,627 @@
 {% extends "base.html" %}
 {% block title %}Analysis result — LinkLens{% endblock %}
 {% block content %}
+{% set verdict_lower = result.overallVerdict|lower|replace('_', '') %}
 
 <script type="application/json" id="result-data">{{ result | tojson }}</script>
 
-<section class="verdict-hero card">
-	<div class="verdict-top">
-		<div class="gauge-wrap">
-			<svg class="gauge" viewBox="0 0 160 160" role="img" aria-label="Overall risk score {{ result.overallScore }} out of 10">
-				<circle class="gauge-track" cx="80" cy="80" r="70"></circle>
-				<circle class="gauge-fill {{ result.overallVerdict|lower }}" cx="80" cy="80" r="70"
-					stroke-dasharray="439.8"
-					stroke-dashoffset="{{ (439.8 * (1 - result.overallScore / 10))|round(1) }}"></circle>
-				<text x="80" y="82" class="gauge-score">{{ result.overallScore }}</text>
-				<text x="80" y="102" class="gauge-max">/10</text>
-			</svg>
+<section class="result-hero mouse-glow">
+	<div class="glow" aria-hidden="true"></div>
+	<div class="container">
+		<div class="hero-badge reveal">
+			<span class="badge badge-verdict badge-{{ verdict_lower }}">
+				{% if result.overallVerdict == "SAFE" %}
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14 9 11"/></svg>
+				{% elif result.overallVerdict == "SUSPICIOUS" %}
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+				{% elif result.overallVerdict == "HIGH_RISK" %}
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+				{% else %}
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+				{% endif %}
+				{{ result.overallVerdict|replace('_', ' ') }}
+			</span>
 		</div>
-		<div class="verdict-main">
-			<span class="badge badge-big {{ result.overallVerdict|lower }}">{{ result.overallVerdict }}</span>
-			<p class="muted verdict-date">Scanned {{ result.finalUrl }}</p>
-			<div class="url-display">{{ result.finalUrl }}</div>
-			{% if result.warnings %}
-			<div class="alert alert-warn">
-				<strong>Warnings:</strong>
-				{% for w in result.warnings %}<span class="badge warn">{{ w }}</span>{% endfor %}
+
+		<h1 class="reveal" data-delay="1">Here's the <span class="gradient-text">verdict</span></h1>
+
+		<div class="score-wrap reveal" data-delay="2">
+			<div class="score-ring ring-{{ verdict_lower }}">
+				<svg viewBox="0 0 168 168" role="img" aria-label="Overall risk score {{ result.overallScore }} out of 10">
+					<circle class="score-ring-track" cx="84" cy="84" r="74"></circle>
+					<circle class="score-ring-value" cx="84" cy="84" r="74" data-r="74"
+						stroke-dasharray="464.96"
+						stroke-dashoffset="{{ (464.96 * (1 - result.overallScore / 10))|round(1) }}"></circle>
+				</svg>
+				<div class="score-ring-center">
+					<div>
+						<div class="score-num" id="scoreNum" data-score="{{ result.overallScore }}">{{ result.overallScore }}</div>
+						<div class="score-tag">out of 10</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="score-side">
+				<p>LinkLens opened this URL in a sandboxed browser and ran {{ result.scoreBreakdown|length }} checks against it. The verdict is a weighted combination of everything observed.</p>
+				<div class="score-meta">
+					<span>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 13 21 3 11 12 15 12 9 21 14 14"/></svg>
+						{{ result.scoreBreakdown|length }} checks
+					</span>
+					<span>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+						{{ (result.trace.total_ms / 1000)|round(1) }}s scan
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="reveal" data-delay="3">
+			<div class="result-url">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+				{{ result.finalUrl }}
+			</div>
+		</div>
+
+		<div class="reveal" data-delay="4" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px">
+			<a href="/" class="btn btn-outline magnetic">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+				Scan another
+			</a>
+			<button type="button" class="btn btn-outline" id="copyJsonBtn">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+				Copy raw JSON
+			</button>
+		</div>
+	</div>
+</section>
+
+<div class="container">
+	{% if result.warnings %}
+	<div class="alert alert-warning reveal">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+		<div>
+			{% for w in result.warnings %}{{ w }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+
+	{% if result.screenshots %}
+	<section class="sec reveal">
+		<div class="sec-head">
+			<span class="sec-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+			</span>
+			<h3>What it looks like</h3>
+		</div>
+		<div class="screenshot-frame">
+			<img src="{{ result.screenshots[0] }}" alt="Screenshot of the analyzed page" loading="lazy">
+		</div>
+	</section>
+	{% endif %}
+
+	<section class="sec reveal">
+		<div class="sec-head">
+			<span class="sec-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+			</span>
+			<h3>Why this verdict</h3>
+		</div>
+		<div class="reasons">
+			{% if result.reasons %}
+				{% for r in result.reasons %}
+				<div class="reason reason-warn">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+					<div>
+						<span class="chip chip-warn" style="margin-right:8px">{{ r.category }}</span>{{ r.text }}
+					</div>
+				</div>
+				{% endfor %}
+			{% else %}
+			<div class="reason reason-good">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4 12 14 9 11"/></svg>
+				<div>No notable red flags raised by any check. That doesn't guarantee safety — it just means nothing stood out.</div>
 			</div>
 			{% endif %}
 		</div>
-	</div>
+	</section>
 
-	<div class="verdict-actions">
-		<a href="/" class="btn btn-outline">Scan another</a>
-		<button type="button" class="btn btn-outline" id="copyJsonBtn">Copy raw JSON</button>
-		<span class="muted" id="copyToast" hidden>Copied!</span>
-	</div>
-</section>
+	<section class="sec reveal">
+		<div class="summary-cards">
+			<div class="card card-hover summary-card">
+				<div class="s-ic s-ic-teal">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+				</div>
+				<div class="s-val">{{ result.redirectChain|length - 1 if result.redirectChain|length > 1 else 0 }}</div>
+				<div class="s-lbl">Redirects</div>
+			</div>
+			<div class="card card-hover summary-card">
+				<div class="s-ic s-ic-teal">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+				</div>
+				<div class="s-val">{{ result.networkStats.requests|default(0) }}</div>
+				<div class="s-lbl">Network requests</div>
+			</div>
+			<div class="card card-hover summary-card">
+				<div class="s-ic {{ 's-ic-amber' if (result.popups.dialogs|length + result.popups.modals|length) > 0 else 's-ic-green' }}">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M5 3h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+				</div>
+				<div class="s-val">{{ result.popups.dialogs|length + result.popups.modals|length }}</div>
+				<div class="s-lbl">Popups / dialogs</div>
+			</div>
+			<div class="card card-hover summary-card">
+				<div class="s-ic {{ 's-ic-red' if result.downloads|length > 0 else 's-ic-green' }}">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+				</div>
+				<div class="s-val">{{ result.downloads|length }}</div>
+				<div class="s-lbl">Auto-downloads</div>
+			</div>
+		</div>
+	</section>
 
-{% if result.screenshots %}
-<section class="card">
-	<h2>What it looks like</h2>
-	<p class="muted">Full-page screenshot captured after the page finished loading in the sandbox.</p>
-	<div class="screenshot-wrap">
-		<img src="{{ result.screenshots[0] }}" alt="Screenshot of the analyzed page" loading="lazy">
-	</div>
-</section>
-{% endif %}
+	<section class="sec reveal">
+		<div class="sec-head">
+			<span class="sec-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+			</span>
+			<h3>Score breakdown</h3>
+		</div>
+		<div class="card sec-body">
+			<div class="breakdown">
+				{% for b in result.scoreBreakdown %}
+				<div class="break-item">
+					<div class="break-top">
+						<span class="break-name">{{ b.label }}</span>
+						<span class="break-val">{{ b.score }}/10 · weight {{ b.weight }}</span>
+					</div>
+					<div class="break-bar">
+						<div class="break-fill {{ 'over-danger' if b.score >= 7 else ('over-warn' if b.score >= 4 else '') }}" data-width="{{ b.score * 10 }}"></div>
+					</div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+	</section>
 
-<section class="card">
-	<h2>Why this verdict</h2>
-	{% if result.reasons %}
-	<ul class="reasons-list">
-		{% for r in result.reasons %}
-		<li><span class="badge {{ result.overallVerdict|lower }}">{{ r.category }}</span> {{ r.text }}</li>
-		{% endfor %}
-	</ul>
+	{% if result.ai.enabled %}
+	<section class="sec reveal">
+		<div class="sec-head">
+			<span class="sec-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z"/></svg>
+			</span>
+			<h3>AI review <span class="chip chip-good" style="margin-left:4px">Gemini</span></h3>
+		</div>
+		<div class="grid grid-3">
+			<div class="card card-pad">
+				<h4 style="font-size:.95rem;margin-bottom:6px">Link structure</h4>
+				<div class="break-item" style="margin:10px 0 12px">
+					<div class="break-top">
+						<span class="break-val">{{ result.ai.link.riskScore|round(1) }}/10 risk</span>
+					</div>
+					<div class="break-bar">
+						<div class="break-fill {{ 'over-danger' if result.ai.link.riskScore >= 7 else ('over-warn' if result.ai.link.riskScore >= 4 else '') }}" data-width="{{ result.ai.link.riskScore * 10 }}"></div>
+					</div>
+				</div>
+				<p class="feature-desc">{{ result.ai.link.summary }}</p>
+				{% if result.ai.link.reasons %}
+				<div class="chips" style="margin-top:12px">
+					{% for r in result.ai.link.reasons %}<span class="chip chip-warn">{{ r }}</span>{% endfor %}
+				</div>
+				{% endif %}
+			</div>
+			<div class="card card-pad">
+				<h4 style="font-size:.95rem;margin-bottom:6px">Page content</h4>
+				<div class="break-item" style="margin:10px 0 12px">
+					<div class="break-top">
+						<span class="break-val">{{ result.ai.content.riskScore|round(1) }}/10 risk</span>
+					</div>
+					<div class="break-bar">
+						<div class="break-fill {{ 'over-danger' if result.ai.content.riskScore >= 7 else ('over-warn' if result.ai.content.riskScore >= 4 else '') }}" data-width="{{ result.ai.content.riskScore * 10 }}"></div>
+					</div>
+				</div>
+				<p class="feature-desc">{{ result.ai.content.summary }}</p>
+				{% if result.ai.content.reasons %}
+				<div class="chips" style="margin-top:12px">
+					{% for r in result.ai.content.reasons %}<span class="chip chip-warn">{{ r }}</span>{% endfor %}
+				</div>
+				{% endif %}
+			</div>
+			<div class="card card-pad">
+				<h4 style="font-size:.95rem;margin-bottom:6px">Popups / dialogs</h4>
+				<div class="break-item" style="margin:10px 0 12px">
+					<div class="break-top">
+						<span class="break-val">{{ result.ai.popups.riskScore|round(1) }}/10 risk</span>
+					</div>
+					<div class="break-bar">
+						<div class="break-fill {{ 'over-danger' if result.ai.popups.riskScore >= 7 else ('over-warn' if result.ai.popups.riskScore >= 4 else '') }}" data-width="{{ result.ai.popups.riskScore * 10 }}"></div>
+					</div>
+				</div>
+				<p class="feature-desc">{{ result.ai.popups.summary }}</p>
+				{% if result.ai.popups.reasons %}
+				<div class="chips" style="margin-top:12px">
+					{% for r in result.ai.popups.reasons %}<span class="chip chip-warn">{{ r }}</span>{% endfor %}
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</section>
 	{% else %}
-	<p class="muted">No notable red flags raised by any check. That doesn't guarantee safety — it just means nothing stood out.</p>
+	<section class="sec reveal">
+		<div class="sec-head">
+			<span class="sec-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z"/></svg>
+			</span>
+			<h3>AI review</h3>
+		</div>
+		<div class="card card-pad empty" style="border-style:solid">Set <code>GEMINI_API_KEY</code> to enable AI scoring of the URL, page text and popups. This scan is heuristic-only.</div>
+	</section>
 	{% endif %}
-</section>
 
-<section class="summary-grid">
-	<div class="summary-item">
-		<strong>{{ result.redirectChain|length - 1 if result.redirectChain|length > 1 else 0 }}</strong>
-		<span>Redirects</span>
-	</div>
-	<div class="summary-item">
-		<strong>{{ result.networkStats.requests|default(0) }}</strong>
-		<span>Network requests</span>
-	</div>
-	<div class="summary-item">
-		<strong>{{ result.popups.dialogs|length + result.popups.modals|length }}</strong>
-		<span>Popups / dialogs</span>
-	</div>
-	<div class="summary-item">
-		<strong>{{ result.downloads|length }}</strong>
-		<span>Auto-downloads</span>
-	</div>
-	<div class="summary-item">
-		<strong>{{ result.thirdParty.domains|length }}</strong>
-		<span>Third-party domains</span>
-	</div>
-	<div class="summary-item">
-		<strong>{{ result.html.externalScriptCount|default(0) }}</strong>
-		<span>External scripts</span>
-	</div>
-</section>
-
-<section class="card">
-	<h2>Score breakdown</h2>
-	<p class="muted">Each check contributes to the total weighted score. Hover for the detail.</p>
-	{% for b in result.scoreBreakdown %}
-	<div class="breakdown-row">
-		<span class="breakdown-label">{{ b.label }}</span>
-		<div class="risk-bar"><div class="risk-bar-fill {{ 'high' if b.score >= 7 else ('medium' if b.score >= 4 else 'low') }}" style="width: {{ b.score * 10 }}%"></div></div>
-		<span class="breakdown-score">{{ b.score }}<span class="muted">/10</span></span>
-	</div>
-	{% endfor %}
-</section>
-
-{% if result.ai.enabled %}
-<section class="card">
-	<h2>AI review <span class="badge safe">Gemini</span></h2>
-	<div class="ai-grid">
-		<div class="ai-box">
-			<h3>Link structure</h3>
-			<span class="risk-score {{ 'high' if result.ai.link.riskScore >= 7 else ('medium' if result.ai.link.riskScore >= 4 else 'low') }}">{{ result.ai.link.riskScore|round(1) }}/10</span>
-			<p class="muted">{{ result.ai.link.summary }}</p>
-			{% for r in result.ai.link.reasons %}<span class="badge warn">{{ r }}</span>{% endfor %}
-		</div>
-		<div class="ai-box">
-			<h3>Page content</h3>
-			<span class="risk-score {{ 'high' if result.ai.content.riskScore >= 7 else ('medium' if result.ai.content.riskScore >= 4 else 'low') }}">{{ result.ai.content.riskScore|round(1) }}/10</span>
-			<p class="muted">{{ result.ai.content.summary }}</p>
-			{% for r in result.ai.content.reasons %}<span class="badge warn">{{ r }}</span>{% endfor %}
-		</div>
-		<div class="ai-box">
-			<h3>Popups / dialogs</h3>
-			<span class="risk-score {{ 'high' if result.ai.popups.riskScore >= 7 else ('medium' if result.ai.popups.riskScore >= 4 else 'low') }}">{{ result.ai.popups.riskScore|round(1) }}/10</span>
-			<p class="muted">{{ result.ai.popups.summary }}</p>
-			{% for r in result.ai.popups.reasons %}<span class="badge warn">{{ r }}</span>{% endfor %}
-		</div>
-	</div>
-</section>
-{% else %}
-<section class="card">
-	<h2>AI review</h2>
-	<p class="muted">Set <code>GEMINI_API_KEY</code> to enable AI scoring of the URL, page text and popups. The scan above is heuristic-only.</p>
-</section>
-{% endif %}
-
-{% if result.credentialExfil.crossOriginPasswordForms %}
-<section class="card">
-	<h2>🚨 Credential harvesting</h2>
-	<p class="muted">This page has password fields that submit to a <strong>different</strong> domain than the one you're looking at:</p>
-	<ul class="url-list">
-		{% for u in result.credentialExfil.crossOriginPasswordForms %}
-		<li class="url-display">{{ u }}</li>
-		{% endfor %}
-	</ul>
-</section>
-{% endif %}
-
-<section class="card">
-	<h2>Redirect chain</h2>
-	{% if result.redirectChain|length > 1 %}
-	<ol class="redirect-list">
-		{% for u in result.redirectChain %}
-		<li class="url-display {{ 'first' if loop.first else ('last' if loop.last else '') }}">
-			<span class="muted">Step {{ loop.index }}:</span> {{ u }}
-		</li>
-		{% endfor %}
-	</ol>
-	{% else %}
-	<p class="muted">No redirects — the URL loaded directly.</p>
-	{% endif %}
-</section>
-
-<section class="grid">
-	<div class="card">
-		<h2>URL heuristics</h2>
-		<table class="kv-table">
-			<tbody>
-				<tr><td>Host</td><td><code>{{ result.urlHeuristics.host }}</code></td></tr>
-				<tr><td>IP address in URL</td><td>{% if result.urlHeuristics.ipInUrl %}<span class="badge malicious">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>'@' in URL</td><td>{% if result.urlHeuristics.atSymbolInUrl %}<span class="badge malicious">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>Subdomains</td><td>{{ result.urlHeuristics.subdomainCount }}{% if result.urlHeuristics.manySubdomains %} <span class="badge warn">many</span>{% endif %}</td></tr>
-				<tr><td>URL shortener</td><td>{% if result.urlHeuristics.urlShortener %}<span class="badge warn">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>Punycode / homograph</td><td>{% if result.urlHeuristics.punycode %}<span class="badge malicious">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>Phishing keywords</td><td>{% if result.urlHeuristics.phishingKeywords %}<span class="badge warn">{{ result.urlHeuristics.phishingKeywords|join(', ') }}</span>{% else %}<span class="badge safe">None</span>{% endif %}</td></tr>
-				<tr><td>Typosquatting</td><td>{% if result.urlHeuristics.typosquatting.likely %}<span class="badge malicious">vs {{ result.urlHeuristics.typosquatting.target }}</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>Suspicious TLD</td><td>{% if result.urlHeuristics.suspiciousTld %}<span class="badge warn">.{{ result.urlHeuristics.tld }}</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>Double-slash in path</td><td>{% if result.urlHeuristics.doubleSlashInPath %}<span class="badge warn">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-			</tbody>
-		</table>
-	</div>
-
-	<div class="card">
-		<h2>Domain trust</h2>
-		<table class="kv-table">
-			<tbody>
-				<tr><td>HTTPS</td><td>{% if result.domainTrust.https %}<span class="badge safe">Yes</span>{% else %}<span class="badge malicious">No</span>{% endif %}</td></tr>
-				<tr><td>Domain age</td>
-					<td>
-					{% if result.domainTrust.whois.ageDays is not none %}
-						{{ result.domainTrust.whois.ageDays }} days
-						{% if result.domainTrust.whois.ageDays < 30 %}<span class="badge warn">new</span>{% endif %}
-					{% else %}
-						<span class="badge">unknown</span>
-					{% endif %}
-					</td></tr>
-				<tr><td>Registrar</td><td>{{ result.domainTrust.whois.registrar or '—' }}</td></tr>
-				<tr><td>SSL valid</td><td>{% if result.domainTrust.certificate.valid %}<span class="badge safe">Yes</span>{% else %}<span class="badge malicious">No</span>{% endif %}</td></tr>
-				<tr><td>Cert mismatch</td><td>{% if result.domainTrust.certificate.mismatch %}<span class="badge malicious">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-				<tr><td>Resolved IPs</td><td><code>{{ result.domainTrust.dns.ips|join(', ') or '—' }}</code></td></tr>
-				<tr><td>Private IP</td><td>{% if result.domainTrust.dns.privateIp %}<span class="badge malicious">Yes</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-			</tbody>
-		</table>
-	</div>
-</section>
-
-<section class="grid">
-	<div class="card">
-		<h2>Network activity</h2>
-		{% if result.network.suspicious %}
-		<div class="alert alert-error">
-			<strong>Suspicious network behaviour detected</strong>
-			<ul>
-				{% for ind in result.network.indicators %}<li>{{ ind }}</li>{% endfor %}
-			</ul>
-		</div>
-		{% else %}
-		<p class="muted">No suspicious network patterns.</p>
-		{% endif %}
-		<table class="kv-table">
-			<tbody>
-				<tr><td>Requests</td><td>{{ result.networkStats.requests }}</td></tr>
-				<tr><td>Failed</td><td>{{ result.networkStats.failed }}</td></tr>
-				<tr><td>Data transferred</td><td>{{ (result.networkStats.bytes / 1024)|round(1) }} KB</td></tr>
-				<tr><td>Used HTTPS</td><td>{% if result.networkStats.usedHttps %}<span class="badge safe">Yes</span>{% else %}<span class="badge warn">No</span>{% endif %}</td></tr>
-				<tr><td>Anti-bot blocked</td><td>{% if result.antiBot.blocked %}<span class="badge warn">Yes — {{ result.antiBot.reason }}</span>{% else %}<span class="badge safe">No</span>{% endif %}</td></tr>
-			</tbody>
-		</table>
-	</div>
-
-	<div class="card">
-		<h2>Third-party domains</h2>
-		<p class="muted">External hosts the page asked for resources from. Unknown ad-looking domains are highlighted.</p>
-		{% if result.thirdParty.domains %}
-		<table class="kv-table">
-			<tbody>
-				{% for domain, count in result.thirdParty.domains.items() %}
-				<tr>
-					<td>
-						<code>{{ domain }}</code>
-						{% if domain in result.thirdParty.unknownAdDomains %}<span class="badge warn">ad?</span>{% endif %}
-					</td>
-					<td>{{ count }}x</td>
-				</tr>
+	{% if result.credentialExfil.crossOriginPasswordForms %}
+	<section class="sec reveal">
+		<div class="alert alert-danger">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+			<div>
+				<strong>Credential harvesting detected.</strong> This page has password fields that submit to a different domain than the one you are looking at:
+				{% for u in result.credentialExfil.crossOriginPasswordForms %}
+				<div class="mono" style="margin-top:6px">{{ u }}</div>
 				{% endfor %}
-			</tbody>
-		</table>
-		{% else %}
-		<p class="muted">No third-party requests observed.</p>
-		{% endif %}
-		{% if result.thirdParty.suspiciousPosts %}
-		<div class="alert alert-warn" style="margin-top: 16px;">
-			<strong>Suspicious POST requests</strong>
-			<ul>
-				{% for p in result.thirdParty.suspiciousPosts %}
-				<li><code>{{ p.reason }}</code> → <span class="muted">{{ p.url }}</span></li>
-				{% endfor %}
-			</ul>
+			</div>
 		</div>
-		{% endif %}
-	</div>
-</section>
-
-<section class="grid">
-	<div class="card">
-		<h2>Popups & overlays</h2>
-		{% set popup_count = result.popups.dialogs|length + result.popups.modals|length %}
-		{% if popup_count %}
-		<div class="alert alert-error">
-			<strong>{{ popup_count }} popup(s) shown during load</strong>
-		</div>
-		{% if result.popups.dialogs %}
-		<h3>JavaScript dialogs</h3>
-		<ul class="url-list">
-			{% for d in result.popups.dialogs %}<li class="alert alert-error">{{ d }}</li>{% endfor %}
-		</ul>
-		{% endif %}
-		{% if result.popups.modals %}
-		<h3>HTML modals / overlays</h3>
-		<ul class="url-list">
-			{% for m in result.popups.modals %}
-			<li class="alert alert-error">{{ m.text|truncate(300) }}{% if m.source %}<br><span class="muted">source: {{ m.source }}</span>{% endif %}</li>
-			{% endfor %}
-		</ul>
-		{% endif %}
-		{% else %}
-		<p class="muted">No popups, dialogs or high-z-index overlays appeared.</p>
-		{% endif %}
-	</div>
-
-	<div class="card">
-		<h2>Downloads</h2>
-		{% if result.downloads %}
-		<table class="kv-table">
-			<tbody>
-				{% for d in result.downloads %}
-				<tr>
-					<td><code>{{ d.filename }}</code></td>
-					<td>
-						{% if d.yaraMatches|default([]) %}
-							{% for m in d.yaraMatches %}<span class="badge malicious">{{ m }}</span>{% endfor %}
-						{% else %}
-							<span class="badge safe">clean</span>
-						{% endif %}
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-		{% else %}
-		<p class="muted">No files were auto-downloaded.</p>
-		{% endif %}
-		{% if result.htmlYara %}
-		<div class="alert alert-error" style="margin-top: 16px;">
-			<strong>YARA matches in page HTML:</strong>
-			{% for m in result.htmlYara %}<span class="badge malicious">{{ m }}</span>{% endfor %}
-		</div>
-		{% endif %}
-	</div>
-</section>
-
-<section class="card">
-	<h2>Page content analysis</h2>
-	<div class="stats-chips">
-		<span class="chip">Iframes: <strong>{{ result.html.iframes.count }}</strong>{% if result.html.iframes.hidden > 0 %} <span class="badge warn">{{ result.html.iframes.hidden }} hidden</span>{% endif %}</span>
-		<span class="chip">External forms: <strong>{{ result.html.crossSiteResources.forms|length }}</strong></span>
-		<span class="chip">External scripts: <strong>{{ result.html.externalScriptCount|default(0) }}</strong></span>
-		<span class="chip">External images: <strong>{{ result.html.crossSiteResources.images|length }}</strong></span>
-		<span class="chip">External styles: <strong>{{ result.html.crossSiteResources.styles|length }}</strong></span>
-		<span class="chip">Meta refresh: <strong>{{ 'Yes' if result.html.metaRefresh else 'No' }}</strong></span>
-		<span class="chip">External &lt;base&gt;: <strong>{{ 'Yes' if result.html.externalBaseTag else 'No' }}</strong></span>
-		<span class="chip">Right-click disabled: <strong>{{ 'Yes' if result.html.interactionLocks.rightClickDisabled else 'No' }}</strong></span>
-	</div>
-	{% if result.html.suspiciousScripts %}
-	<div class="alert alert-warn">
-		<strong>Obfuscated inline scripts:</strong>
-		<ul>
-			{% for s in result.html.suspiciousScripts %}
-			<li>{{ s.length }} chars, entropy {{ s.entropy }}{% if s.obfuscationHints %} — {{ s.obfuscationHints|join(', ') }}{% endif %}</li>
-			{% endfor %}
-		</ul>
-	</div>
+	</section>
 	{% endif %}
-	{% if result.html.title %}
-	<h3>Page title</h3>
-	<p class="url-display">{{ result.html.title }}</p>
-	{% endif %}
-	<h3>Content preview</h3>
-	<p class="muted snippet">{{ result.html.textSnippet|truncate(500) }}</p>
-</section>
 
-<section class="grid">
-	<div class="card">
-		<h2>Browser console</h2>
-		{% if result.consoleMessages %}
-		<ul class="console-list">
-			{% for m in result.consoleMessages %}
-			<li class="{{ m.type }}"><span class="muted">{{ m.type }}:</span> {{ m.text }}</li>
-			{% endfor %}
-		</ul>
-		{% else %}
-		<p class="muted">No console errors or warnings captured.</p>
-		{% endif %}
-	</div>
-	<div class="card">
-		<h2>Page errors & anti-bot</h2>
-		{% if result.pageErrors %}
-		<ul class="console-list">
-			{% for e in result.pageErrors %}<li class="error">{{ e }}</li>{% endfor %}
-		</ul>
-		{% else %}
-		<p class="muted">No uncaught JavaScript errors.</p>
-		{% endif %}
-		{% if result.fingerprinting.hints %}
-		<h3>Fingerprinting attempts</h3>
-		<div>{% for h in result.fingerprinting.hints %}<span class="badge warn">{{ h }}</span>{% endfor %}</div>
-		{% endif %}
-		{% if result.dynamicError %}
-		<p class="alert alert-error">Browser error during load: {{ result.dynamicError }}</p>
-		{% endif %}
-	</div>
-</section>
+	<section class="sec reveal">
+		<div class="sec-head">
+			<span class="sec-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+			</span>
+			<h3>Redirect chain</h3>
+		</div>
+		<div class="rowlist">
+			{% if result.redirectChain|length > 1 %}
+				{% for u in result.redirectChain %}
+				<div class="row-item">
+					<div class="row-main">
+						<span class="row-arrow">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+							Step {{ loop.index }}{{ ' (final)' if loop.last else '' }}
+						</span>
+						<span class="row-url">{{ u }}</span>
+					</div>
+				</div>
+				{% endfor %}
+			{% else %}
+			<div class="empty">No redirects — the URL loaded directly.</div>
+			{% endif %}
+		</div>
+	</section>
 
-<section class="card">
-	<h2>Performance</h2>
-	<div class="perf-grid">
-		<div class="perf-item"><div class="perf-value">{{ result.trace.static_ms }} ms</div><span class="muted">Static preflight</span></div>
-		<div class="perf-item"><div class="perf-value">{{ result.trace.dynamic_ms }} ms</div><span class="muted">Browser load & capture</span></div>
-		<div class="perf-item"><div class="perf-value">{{ result.trace.total_ms }} ms</div><span class="muted">Total</span></div>
-		{% if result.loadMetrics %}
-		<div class="perf-item"><div class="perf-value">{{ result.loadMetrics.domContentLoaded }} ms</div><span class="muted">DOM ready (page)</span></div>
-		{% endif %}
-	</div>
-</section>
+	<section class="sec reveal">
+		<div class="grid grid-2">
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+					</span>
+					<h3>URL heuristics</h3>
+				</div>
+				<table class="kv">
+					<tbody>
+						<tr><td>Host</td><td class="mono">{{ result.urlHeuristics.host }}</td></tr>
+						<tr><td>IP address in URL</td><td class="{{ 'bad' if result.urlHeuristics.ipInUrl else 'good' }}">{{ 'Yes' if result.urlHeuristics.ipInUrl else 'No' }}</td></tr>
+						<tr><td>'@' in URL</td><td class="{{ 'bad' if result.urlHeuristics.atSymbolInUrl else 'good' }}">{{ 'Yes' if result.urlHeuristics.atSymbolInUrl else 'No' }}</td></tr>
+						<tr><td>Subdomains</td><td>{{ result.urlHeuristics.subdomainCount }}{% if result.urlHeuristics.manySubdomains %} <span class="chip chip-warn">many</span>{% endif %}</td></tr>
+						<tr><td>URL shortener</td><td class="{{ 'warn' if result.urlHeuristics.urlShortener else 'good' }}">{{ 'Yes' if result.urlHeuristics.urlShortener else 'No' }}</td></tr>
+						<tr><td>Punycode / homograph</td><td class="{{ 'bad' if result.urlHeuristics.punycode else 'good' }}">{{ 'Yes' if result.urlHeuristics.punycode else 'No' }}</td></tr>
+						<tr><td>Phishing keywords</td>
+							<td>{% if result.urlHeuristics.phishingKeywords %}<div class="chips">{% for k in result.urlHeuristics.phishingKeywords %}<span class="chip chip-warn">{{ k }}</span>{% endfor %}</div>{% else %}<span class="good">None</span>{% endif %}</td></tr>
+						<tr><td>Typosquatting</td><td class="{{ 'bad' if result.urlHeuristics.typosquatting.likely else 'good' }}">{{ 'vs ' + result.urlHeuristics.typosquatting.target if result.urlHeuristics.typosquatting.likely else 'No' }}</td></tr>
+						<tr><td>Suspicious TLD</td><td class="{{ 'warn' if result.urlHeuristics.suspiciousTld else 'good' }}">{{ 'top-level: .' + result.urlHeuristics.tld if result.urlHeuristics.suspiciousTld else 'No' }}</td></tr>
+						<tr><td>Double-slash in path</td><td class="{{ 'warn' if result.urlHeuristics.doubleSlashInPath else 'good' }}">{{ 'Yes' if result.urlHeuristics.doubleSlashInPath else 'No' }}</td></tr>
+					</tbody>
+				</table>
+			</div>
 
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+					</span>
+					<h3>Domain trust</h3>
+				</div>
+				<table class="kv">
+					<tbody>
+						<tr><td>HTTPS</td><td class="{{ 'good' if result.domainTrust.https else 'bad' }}">{{ 'Yes' if result.domainTrust.https else 'No' }}</td></tr>
+						<tr><td>Domain age</td>
+							<td>
+							{% if result.domainTrust.whois.ageDays is not none %}
+								{{ result.domainTrust.whois.ageDays }} days
+								{% if result.domainTrust.whois.ageDays < 30 %}<span class="chip chip-warn">new</span>{% endif %}
+							{% else %}
+								<span class="neutral">unknown</span>
+							{% endif %}
+							</td></tr>
+						<tr><td>Registrar</td><td class="{{ 'neutral' if not result.domainTrust.whois.registrar else '' }}">{{ result.domainTrust.whois.registrar or 'unknown' }}</td></tr>
+						<tr><td>SSL certificate valid</td><td class="{{ 'good' if result.domainTrust.certificate.valid else 'bad' }}">{{ 'Yes' if result.domainTrust.certificate.valid else 'No' }}</td></tr>
+						<tr><td>Cert hostname mismatch</td><td class="{{ 'bad' if result.domainTrust.certificate.mismatch else 'good' }}">{{ 'Yes' if result.domainTrust.certificate.mismatch else 'No' }}</td></tr>
+						<tr><td>Resolved IPs</td><td class="mono">{{ result.domainTrust.dns.ips|join(', ') or 'unknown' }}</td></tr>
+						<tr><td>Private IP</td><td class="{{ 'bad' if result.domainTrust.dns.privateIp else 'good' }}">{{ 'Yes' if result.domainTrust.dns.privateIp else 'No' }}</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="grid grid-2">
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+					</span>
+					<h3>Network activity</h3>
+				</div>
+				{% if result.network.suspicious %}
+				<div class="alert alert-danger" style="margin-bottom:12px">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<div>
+						Suspicious network behaviour detected.
+						{% for ind in result.network.indicators %}<div>{{ ind }}</div>{% endfor %}
+					</div>
+				</div>
+				{% else %}
+				<p class="feature-desc" style="margin-bottom:12px">No suspicious network patterns.</p>
+				{% endif %}
+				<table class="kv">
+					<tbody>
+						<tr><td>Requests</td><td>{{ result.networkStats.requests }}</td></tr>
+						<tr><td>Failed</td><td>{{ result.networkStats.failed }}</td></tr>
+						<tr><td>Data transferred</td><td>{{ (result.networkStats.bytes / 1024)|round(1) }} KB</td></tr>
+						<tr><td>Used HTTPS</td><td class="{{ 'good' if result.networkStats.usedHttps else 'warn' }}">{{ 'Yes' if result.networkStats.usedHttps else 'No' }}</td></tr>
+						<tr><td>Anti-bot blocked</td>
+							<td>{% if result.antiBot.blocked %}<span class="chip chip-warn">Yes — {{ result.antiBot.reason }}</span>{% else %}<span class="good">No</span>{% endif %}</td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+					</span>
+					<h3>Third-party domains</h3>
+				</div>
+				<p class="feature-desc" style="margin-bottom:12px">External hosts the page asked for resources from.</p>
+				{% if result.thirdParty.domains %}
+				<table class="kv">
+					<tbody>
+						{% for domain, count in result.thirdParty.domains.items() %}
+						<tr>
+							<td>
+								<span class="mono">{{ domain }}</span>
+								{% if domain in result.thirdParty.unknownAdDomains %}<span class="chip chip-warn">ad?</span>{% endif %}
+							</td>
+							<td>{{ count }}x</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% else %}
+				<div class="empty">No third-party requests observed.</div>
+				{% endif %}
+				{% if result.thirdParty.suspiciousPosts %}
+				<div class="alert alert-warning" style="margin-top:12px">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+					<div>
+						<strong>Suspicious POST requests</strong>
+						{% for p in result.thirdParty.suspiciousPosts %}
+						<div style="margin-top:4px"><span class="mono">{{ p.reason }}</span> → {{ p.url }}</div>
+						{% endfor %}
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="grid grid-2">
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M5 3h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+					</span>
+					<h3>Popups and overlays</h3>
+				</div>
+				{% set popup_count = result.popups.dialogs|length + result.popups.modals|length %}
+				{% if popup_count %}
+				<div class="alert alert-danger" style="margin-bottom:12px">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+					<div>{{ popup_count }} popup(s) shown during load</div>
+				</div>
+				{% if result.popups.dialogs %}
+				<h4 style="font-size:.85rem;color:var(--muted);margin:10px 0 8px">JavaScript dialogs</h4>
+				<div class="rowlist">
+					{% for d in result.popups.dialogs %}<div class="row-item">{{ d }}</div>{% endfor %}
+				</div>
+				{% endif %}
+				{% if result.popups.modals %}
+				<h4 style="font-size:.85rem;color:var(--muted);margin:12px 0 8px">HTML modals / overlays</h4>
+				<div class="rowlist">
+					{% for m in result.popups.modals %}
+					<div class="row-item">{{ m.text|truncate(300) }}{% if m.source %}<div class="row-meta">source: <span class="mono">{{ m.source }}</span></div>{% endif %}</div>
+					{% endfor %}
+				</div>
+				{% endif %}
+				{% else %}
+				<div class="empty">No popups, dialogs or high-z-index overlays appeared.</div>
+				{% endif %}
+			</div>
+
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+					</span>
+					<h3>Downloads and YARA</h3>
+				</div>
+				{% if result.downloads %}
+				<table class="kv">
+					<tbody>
+						{% for d in result.downloads %}
+						<tr>
+							<td class="mono">{{ d.filename }}</td>
+							<td>
+								{% if d.yaraMatches|default([]) %}
+									{% for m in d.yaraMatches %}<span class="chip chip-bad">{{ m }}</span>{% endfor %}
+								{% else %}
+									<span class="chip chip-good">clean</span>
+								{% endif %}
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				{% else %}
+				<div class="empty">No files were auto-downloaded.</div>
+				{% endif %}
+				{% if result.htmlYara %}
+				<div class="alert alert-danger" style="margin-top:12px">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+					<div><strong>YARA matches in page HTML:</strong> {% for m in result.htmlYara %}<span class="chip chip-bad">{{ m }}</span>{% endfor %}</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="card sec-body">
+			<div class="sec-head">
+				<span class="sec-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+				</span>
+				<h3>Page content analysis</h3>
+			</div>
+			<div class="chips" style="margin-bottom:14px">
+				<span class="chip">Iframes: <strong>{{ result.html.iframes.count }}</strong>{% if result.html.iframes.hidden > 0 %} <span class="chip chip-warn">{{ result.html.iframes.hidden }} hidden</span>{% endif %}</span>
+				<span class="chip">External forms: <strong>{{ result.html.crossSiteResources.forms|length }}</strong></span>
+				<span class="chip">External scripts: <strong>{{ result.html.externalScriptCount|default(0) }}</strong></span>
+				<span class="chip">External images: <strong>{{ result.html.crossSiteResources.images|length }}</strong></span>
+				<span class="chip">External styles: <strong>{{ result.html.crossSiteResources.styles|length }}</strong></span>
+				<span class="chip">Meta refresh: <strong>{{ 'Yes' if result.html.metaRefresh else 'No' }}</strong></span>
+				<span class="chip">External &lt;base&gt;: <strong>{{ 'Yes' if result.html.externalBaseTag else 'No' }}</strong></span>
+				<span class="chip">Right-click disabled: <strong>{{ 'Yes' if result.html.interactionLocks.rightClickDisabled else 'No' }}</strong></span>
+			</div>
+			{% if result.html.suspiciousScripts %}
+			<div class="alert alert-warning" style="margin-bottom:14px">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+				<div>
+					<strong>Obfuscated inline scripts:</strong>
+					{% for s in result.html.suspiciousScripts %}
+					<div style="margin-top:4px" class="mono">{{ s.length }} chars, entropy {{ s.entropy }}{% if s.obfuscationHints %} — {{ s.obfuscationHints|join(', ') }}{% endif %}</div>
+					{% endfor %}
+				</div>
+			</div>
+			{% endif %}
+			{% if result.html.title %}
+			<h4 style="font-size:.85rem;color:var(--muted);margin-bottom:6px">Page title</h4>
+			<p style="font-weight:600;margin-bottom:14px">{{ result.html.title }}</p>
+			{% endif %}
+			<h4 style="font-size:.85rem;color:var(--muted);margin-bottom:6px">Content preview</h4>
+			<p class="feature-desc">{{ result.html.textSnippet|truncate(500) }}</p>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="grid grid-2">
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+					</span>
+					<h3>Browser console</h3>
+				</div>
+				{% if result.consoleMessages %}
+				<div class="rowlist">
+					{% for m in result.consoleMessages %}
+					<div class="row-item">
+						<div class="row-main">
+							<span class="row-url mono">{{ m.text }}</span>
+							<span class="chip {{ 'chip-warn' if m.type == 'warning' else ('chip-bad' if m.type in ['error', 'exception'] else '') }}">{{ m.type }}</span>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+				{% else %}
+				<div class="empty">No console errors or warnings captured.</div>
+				{% endif %}
+			</div>
+
+			<div class="card sec-body">
+				<div class="sec-head">
+					<span class="sec-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					</span>
+					<h3>Page errors and anti-bot</h3>
+				</div>
+				{% if result.pageErrors %}
+				<div class="rowlist">
+					{% for e in result.pageErrors %}
+					<div class="row-item"><span class="chip chip-bad">error</span><span class="row-url mono" style="margin-left:8px">{{ e }}</span></div>
+					{% endfor %}
+				</div>
+				{% else %}
+				<div class="empty">No uncaught JavaScript errors.</div>
+				{% endif %}
+				{% if result.fingerprinting.hints %}
+				<h4 style="font-size:.85rem;color:var(--muted);margin:14px 0 8px">Fingerprinting attempts</h4>
+				<div class="chips">
+					{% for h in result.fingerprinting.hints %}<span class="chip chip-warn">{{ h }}</span>{% endfor %}
+				</div>
+				{% endif %}
+				{% if result.dynamicError %}
+				<div class="alert alert-danger" style="margin-top:12px">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<div>Browser error during load: <span class="mono">{{ result.dynamicError }}</span></div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal">
+		<div class="card sec-body">
+			<div class="sec-head">
+				<span class="sec-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+				</span>
+				<h3>Performance</h3>
+			</div>
+			<div class="perf-grid">
+				<div class="card card-hover perf-item"><div class="p-val">{{ result.trace.static_ms }} ms</div><div class="p-lbl">Static preflight</div></div>
+				<div class="card card-hover perf-item"><div class="p-val">{{ result.trace.dynamic_ms }} ms</div><div class="p-lbl">Browser load and capture</div></div>
+				<div class="card card-hover perf-item"><div class="p-val">{{ result.trace.total_ms }} ms</div><div class="p-lbl">Total</div></div>
+				{% if result.loadMetrics %}
+				<div class="card card-hover perf-item"><div class="p-val">{{ result.loadMetrics.domContentLoaded }} ms</div><div class="p-lbl">DOM ready (page)</div></div>
+				{% endif %}
+			</div>
+		</div>
+	</section>
+
+	<section class="sec reveal" style="padding-bottom:72px">
+		<div class="card sec-body">
+			<div class="sec-head">
+				<span class="sec-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg>
+				</span>
+				<h3>Raw data</h3>
+			</div>
+			<div class="code-box">
+				<pre>{{ result | tojson(indent=2) }}</pre>
+			</div>
+		</div>
+	</section>
+</div>
 {% endblock %}

@@ -1,67 +1,182 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="hero">
-	<div class="card hero-card">
-		<h1 class="hero-title">Is that link safe to click?</h1>
-		<p class="hero-sub">Paste a URL and LinkLens will open it in a sandboxed browser, watch what it
-		does, scan anything it tries to download, and give you a straight answer.</p>
-
-		<form method="post" action="/scan" id="analyzeForm" autocomplete="off">
-			<div class="url-input-row">
-				<input
-					type="url"
-					id="url"
-					name="url"
-					placeholder="https://example.com"
-					required
-					autofocus
-					spellcheck="false"
-					aria-label="URL to analyze"
-				>
-				<button type="submit" class="btn btn-primary">Analyze</button>
-			</div>
-			{% if error %}
-			<div class="alert alert-error">{{ error }}</div>
-			{% endif %}
-			<p class="muted form-hint">Must start with http:// or https://. Private/loopback addresses are blocked.</p>
-		</form>
-	</div>
-
-	<div class="feature-grid">
-		<div class="card feature-card">
-			<span class="feature-icon">🛡️</span>
-			<h3>Sandboxed browsing</h3>
-			<p class="muted">The link is opened in a real, isolated Chromium with downloads, popups and network calls watched in real time.</p>
+<section class="hero mouse-glow">
+	<div class="glow" aria-hidden="true"></div>
+	<div class="container">
+		<div class="hero-badge reveal">
+			<span class="badge">
+				<span class="badge-dot" aria-hidden="true"></span>
+				AI-powered URL safety analysis
+			</span>
 		</div>
-		<div class="card feature-card">
-			<span class="feature-icon">🧠</span>
-			<h3>AI review</h3>
-			<p class="muted">Gemini reads the URL, page text and popup content and scores how scammy it looks (optional — works without it too).</p>
-		</div>
-		<div class="card feature-card">
-			<span class="feature-icon">📄</span>
-			<h3>Deep inspection</h3>
-			<p class="muted">WHOIS age, SSL certs, redirect chains, YARA malware rules, hidden iframes, password exfiltration, and more.</p>
-		</div>
-	</div>
+		<h1 class="reveal" data-delay="1">
+			Is that link safe<br>to <span class="gradient-text">click?</span>
+		</h1>
+		<p class="hero-sub reveal" data-delay="2">
+			Paste a URL and LinkLens will open it in a sandboxed browser, watch what it does,
+			scan anything it tries to download, and give you a straight answer.
+		</p>
 
-	<div class="card disclaimer">
-		<p><strong>What you're actually getting:</strong></p>
-		<ul class="muted">
-			<li>A <strong>risk score out of 10</strong> with a plain-language breakdown of why.</li>
-			<li>A <strong>screenshot</strong> of the final page, so you can see it before you trust it.</li>
-			<li>Alerts for phishing tricks: typosquatting, fake brands, urgency language, hidden redirects, auto-downloads.</li>
-		</ul>
+		<div class="reveal" data-delay="3">
+			<form method="post" action="/scan" id="analyzeForm" autocomplete="off">
+				<div class="scan-box">
+					<input
+						type="url"
+						id="url"
+						name="url"
+						placeholder="https://example.com"
+						required
+						spellcheck="false"
+						autocapitalize="off"
+						autocorrect="off"
+						aria-label="URL to analyze"
+					>
+					<button type="submit" class="btn btn-primary magnetic" data-strength="0.15">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+						Analyze
+					</button>
+				</div>
+				{% if error %}
+				<div class="alert alert-danger" role="alert">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+					<div>{{ error }}</div>
+				</div>
+				{% endif %}
+				<p class="hero-hint">Must start with <kbd>http://</kbd> or <kbd>https://</kbd>. Private and loopback addresses are blocked.</p>
+			</form>
+		</div>
 	</div>
 </section>
 
-<div class="scan-overlay" id="scanOverlay" hidden>
-	<div class="scan-overlay-card">
-		<div class="spinner"></div>
-		<h2>Analyzing...</h2>
-		<p class="scan-step" id="scanStep">Checking the URL</p>
+<section class="section">
+	<div class="container">
+		<div class="stats reveal">
+			<div class="stat">
+				<div class="stat-value"><b class="count" data-count="7">0</b></div>
+				<div class="stat-label">YARA rule sets</div>
+			</div>
+			<div class="stat">
+				<div class="stat-value"><b class="count" data-count="14">0</b>+</div>
+				<div class="stat-label">inspection checks</div>
+			</div>
+			<div class="stat">
+				<div class="stat-value"><b class="count" data-count="40">0</b>s</div>
+				<div class="stat-label">typical scan time</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="section" id="how">
+	<div class="container">
+		<div class="section-head reveal">
+			<span class="section-eyebrow">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+				How it works
+			</span>
+			<h2>Every scan is a real visit, not a guess</h2>
+			<p>LinkLens loads the page in an isolated Chromium and instruments everything that happens.</p>
+		</div>
+		<div class="steps">
+			<div class="card card-hover tilt reveal">
+				<div class="step">
+					<span class="step-num">01</span>
+					<h3 class="step-title">Run the page</h3>
+					<p class="step-desc">A headless browser visits the URL with rotated fingerprints. Downloads, popups, dialogs and network calls are captured in real time.</p>
+				</div>
+			</div>
+			<div class="card card-hover tilt reveal" data-delay="1">
+				<div class="step">
+					<span class="step-num">02</span>
+					<h3 class="step-title">Inspect deeply</h3>
+					<p class="step-desc">WHOIS age, SSL certificates, redirect chains, hidden iframes, password exfiltration, YARA malware rules and page structure are all examined.</p>
+				</div>
+			</div>
+			<div class="card card-hover tilt reveal" data-delay="2">
+				<div class="step">
+					<span class="step-num">03</span>
+					<h3 class="step-title">Score the risk</h3>
+					<p class="step-desc">An optional AI review weighs the evidence and every finding is combined into a 0&ndash;10 risk score with a plain-language breakdown.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="section">
+	<div class="container">
+		<div class="section-head reveal">
+			<span class="section-eyebrow">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+				What you get
+			</span>
+			<h2>Four layers of protection</h2>
+		</div>
+		<div class="grid grid-4">
+			<div class="card card-hover tilt reveal">
+				<div class="card-pad">
+					<span class="feature-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+					</span>
+					<h3 class="feature-title">Sandboxed browsing</h3>
+					<p class="feature-desc">The link opens in a real, isolated Chromium with downloads, popups and network calls watched live.</p>
+				</div>
+			</div>
+			<div class="card card-hover tilt reveal" data-delay="1">
+				<div class="card-pad">
+					<span class="feature-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z"/></svg>
+					</span>
+					<h3 class="feature-title">AI review</h3>
+					<p class="feature-desc">Gemini reads the URL, page text and popup content and scores how scammy it looks. Works without it too.</p>
+				</div>
+			</div>
+			<div class="card card-hover tilt reveal" data-delay="2">
+				<div class="card-pad">
+					<span class="feature-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+					</span>
+					<h3 class="feature-title">Deep inspection</h3>
+					<p class="feature-desc">WHOIS age, SSL certs, redirect chains, YARA malware rules, hidden iframes and password exfiltration attempts.</p>
+				</div>
+			</div>
+			<div class="card card-hover tilt reveal" data-delay="3">
+				<div class="card-pad">
+					<span class="feature-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+					</span>
+					<h3 class="feature-title">Live behavior</h3>
+					<p class="feature-desc">Redirects are followed and re-checked, fingerprinting attempts flagged, and every console error preserved in the report.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="section">
+	<div class="container">
+		<div class="card card-pad reveal" style="text-align:center">
+			<h2 style="font-size:1.4rem;margin-bottom:8px">See it before you trust it</h2>
+			<p style="color:var(--muted);font-size:.95rem;max-width:560px;margin:0 auto 22px">
+				Every report includes a screenshot of the final page, a 0&ndash;10 risk score,
+				and a plain-language explanation of why the verdict was reached.
+			</p>
+			<a href="#analyzeForm" class="btn btn-outline magnetic">
+				Start a scan
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+			</a>
+		</div>
+	</div>
+</section>
+
+<div class="scan-overlay" id="scanOverlay" aria-hidden="true">
+	<div class="scan-card">
+		<div class="scan-spinner" aria-hidden="true"></div>
+		<h3>Analyzing link</h3>
+		<p class="scan-url" id="scanOverlayUrl"></p>
+		<div class="scan-steps" id="scanSteps"></div>
 		<div class="scan-progress"><div class="scan-progress-fill" id="scanProgress"></div></div>
-		<p class="muted">Loading the page in a sandboxed browser — this usually takes 15–40 seconds.</p>
+		<p style="font-size:.8rem;color:var(--muted-2);margin-top:14px">The page is being loaded in a sandboxed browser. This usually takes 15&ndash;40 seconds.</p>
 	</div>
 </div>
 {% endblock %}
